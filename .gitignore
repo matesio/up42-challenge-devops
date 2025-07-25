@@ -1,0 +1,62 @@
+# ======================================
+# Global
+# ======================================
+.DS_Store
+*.swp
+*.log
+*.tmp
+*.bak
+
+# ======================================
+# Terraform
+# ======================================
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+terraform.tfvars
+*.tfplan
+.terraform.lock.hcl
+
+# Sensitive files
+secrets.auto.tfvars
+*.auto.tfvars
+
+# ======================================
+# Helm
+# ======================================
+*.tgz
+charts/
+tmpcharts/
+values.yaml # if you store secrets here
+values.secret.yaml
+.env
+
+# Helm test hooks output
+test-output/
+
+# ======================================
+# Kubernetes
+# ======================================
+kubeconfig
+*.kubeconfig
+
+# ======================================
+# Editor & IDE-specific
+# ======================================
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+
+# ======================================
+# OS-specific
+# ======================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
