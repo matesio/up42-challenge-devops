@@ -5,7 +5,7 @@ metadata:
   name: {{ include "s3www.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    release: prometheus  # <-- This must match your Prometheus release name
+    release: prometheus
     app.kubernetes.io/name: {{ include "s3www.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:

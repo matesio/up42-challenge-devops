@@ -1,0 +1,11 @@
+service:
+  name: blackbox-exporter
+  port: 9115
+
+prometheus:
+  monitor:
+    enabled: true
+    interval: 30s
+    namespace: monitoring
+    additionalLabels:
+      release: prometheus
