@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "s3www.fullname" . }}
+  labels:
+    {{- include "s3www.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "s3www.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "s3www.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: webp-volume
+          emptyDir: {}
+      initContainers:
+        - name: upload-file
+          image: alpine:3.18
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              echo "Installing curl and downloading mc..."
+              apk add --no-cache curl > /dev/null
+              curl -sSL -o /usr/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc
+              chmod +x /usr/bin/mc
+
+              echo "Downloading file..."
+              curl -L -o /data/{{ .Values.fileToServe.name }} "{{ .Values.fileToServe.url }}"
+
+              echo "Waiting for MinIO..."
+              until mc alias set local http://s3www-minio.s3www.svc.cluster.local:9000 minioadmin minioadmin; do
+                echo "MinIO not ready yet. Retrying in 3s..."
+                sleep 3
+              done
+
+              echo "Uploading to bucket..."
+              mc mb -p local/{{ .Values.fileToServe.bucket }} || true
+              mc cp --quiet /data/{{ .Values.fileToServe.name }} local/{{ .Values.fileToServe.bucket }}/ || true
+              mc anonymous set download local/{{ .Values.fileToServe.bucket }}
+          volumeMounts:
+            - name: webp-volume
+              mountPath: /data
+
+      containers:
+        - name: s3www
+          image: "{{ .Values.s3www.image.repository }}:{{ .Values.s3www.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.s3www.port }}
+          args:
+            {{- range .Values.s3www.args }}
+            - {{ . | quote }}
+            {{- end }}
+          env:
+            - name: DEBUG
+              value: "1"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.s3www.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.s3www.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 5

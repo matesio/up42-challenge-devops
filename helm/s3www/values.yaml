@@ -1,0 +1,31 @@
+s3www:
+  image:
+    repository: y4m4/s3www
+    tag: latest  # <- Use your local image instead of pulling remotely
+  port: 8080
+  ingressPort: 80
+  ingress:
+    enabled: true
+    hostname: s3www.local
+  args:
+    - "-endpoint=http://s3www-minio.s3www.svc.cluster.local:9000"
+    - "-accessKey=minioadmin"
+    - "-secretKey=minioadmin"
+    - "-bucket=my-bucket"
+    - "-address=0.0.0.0:8080"
+
+fileToServe:
+  name: VdiQKDAguhDSi37gn1.webp
+  url: https://media.giphy.com/media/VdiQKDAguhDSi37gn1/giphy.gif
+  bucket: my-bucket
+
+minio:
+  auth:
+    rootUser: minioadmin
+    rootPassword: minioadmin
+  defaultBuckets: "my-bucket"
+  persistence:
+    enabled: false
+monitoring:
+  serviceMonitor:
+    enabled: true

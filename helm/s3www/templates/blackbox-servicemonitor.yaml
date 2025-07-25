@@ -1,0 +1,35 @@
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "s3www.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: prometheus  # <-- This must match your Prometheus release name
+    app.kubernetes.io/name: {{ include "s3www.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "s3www.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: http
+      path: /probe
+      scheme: http
+      interval: 30s
+      params:
+        module: [http_2xx]
+        target: ["http://s3www-s3www.s3www.svc.cluster.local:80"]
+      relabelings:
+        - sourceLabels: [__param_target]
+          targetLabel: instance
+        - sourceLabels: [__address__]
+          targetLabel: __param_target
+        - targetLabel: __address__
+          replacement: blackbox-exporter-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+
+{{- end }}

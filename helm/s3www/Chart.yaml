@@ -1,0 +1,11 @@
+apiVersion: v2
+name: s3www
+description: Helm chart for deploying s3www with MinIO
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+dependencies:
+  - name: minio
+    version: 17.0.15
+    repository: "https://charts.bitnami.com/bitnami"
